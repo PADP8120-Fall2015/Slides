@@ -1,0 +1,565 @@
+---
+title: "Transformations and Nonlinearity"
+author: "Tyler Scott"
+date: "2015-07-27 ![Creative Commons Attribution License](images/cc-by.png)"
+output: 
+  ioslides_presentation:
+    css: soc504_s2015_slides.css
+---
+
+```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
+# make this an external chunk that can be included in any file
+library(knitr)
+options(width = 100)
+opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig/')
+
+options(xtable.type = 'html')
+knit_hooks$set(inline = function(x) {
+  if(is.numeric(x)) {
+    round(x, getOption('digits'))
+  } else {
+    paste(as.character(x), collapse = ', ')
+  }
+})
+knit_hooks$set(plot = knitr:::hook_plot_html)
+runif(1)
+```
+
+## Topics
+
+So far, we have focused on regression involving linear coefficients for numeric independent variables. Today, we turn our attention to new classes of regression terms:
+
+- transformations
+- polynomials
+- standardization
+
+
+## Goals
+
+After class today you will be able to 
+
+- illustrate regression with transformed variables in words, pictures, and equations
+- illustrate regression with polynomial variables in words, pictures, and equations
+- interpret standardized regression coefficients
+
+
+## Transformations
+
+<img class=center src='images/badtimeresidual.png' height=400></img>
+
+If you fit a linear model to data the residual plots look awful, one
+strategy to regain a valid model is to transform your data.
+
+
+## Example 1: Cleaning crews
+
+A building maintenance company is planning to submit a bid to clean corporate offices.
+How much should they bid?  They'd like to be able to cover the job with a team of
+4 crews and a team of a 16 crews, but they want to be sure. To make a good 
+prediction, they collected data on how many crews were required over a sample of
+53 days.
+
+```{r echo=FALSE, fig.height=4}
+cleaning <- read.delim("http://www.stat.tamu.edu/~sheather/book/docs/datasets/cleaning.txt",
+                     header = T)
+plot(Rooms ~ Crews, data = cleaning, pch = 16, col = "darkgreen")
+```
+
+
+## Linear model?
+
+```{r, echo=FALSE}
+m1 <- lm(Rooms ~ Crews, data = cleaning)
+summary(m1)$coef
+plot(Rooms ~ Crews, data = cleaning, pch = 16, col = "darkgreen")
+abline(m1, lwd = 2)
+```
+
+
+## Linearity and normality {.build}
+
+```{r, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(m1, 1:2)
+```
+
+The mean function appears to be linear and the residuals are well-approximated
+by the normal distribution.
+
+
+## Constant variance and influence {.build}
+
+```{r echo = FALSE}
+par(mfrow = c(1, 2))
+plot(m1, c(3, 5))
+```
+
+There are no influential points, however there is dramatic increasing variance.
+
+
+## PIs on an invalid model
+
+```{r echo=FALSE}
+pi <- predict(m1, data.frame(Crews = c(4, 16)), interval = "prediction")
+plot(Rooms ~ Crews, data = cleaning, pch = 16, col = "darkgreen")
+abline(m1, lwd = 2)
+lines(c(4, 4), c(pi[1, 2], pi[1, 3]), col = "tomato", lwd = 2)
+lines(c(16, 16), c(pi[2, 2], pi[2, 3]), col = "tomato", lwd = 2)
+```
+
+Prediction intervals are particularly sensitive to model assumptions, so we have
+good reason to distrust this one.
+
+
+## Square root transform
+
+The square root tranform is often useful to reducing the increasing variance that
+is found in many types of count data.
+
+\[ X_t = \sqrt{X} \]
+
+Let's transform both $X$ and $Y$.
+
+```{r}
+cleaning2 <- transform(cleaning, sqrtCrews = sqrt(Crews))
+cleaning2 <- transform(cleaning2, sqrtRooms = sqrt(Rooms))
+cleaning2[1:2, ]
+```
+
+
+## Transformed linear model?
+
+```{r echo=FALSE}
+m2 <- lm(sqrtRooms ~ sqrtCrews, data = cleaning2)
+summary(m2)$coef
+plot(sqrtRooms ~ sqrtCrews, data = cleaning2, pch = 16, col = "darkgreen")
+abline(m2, lwd = 2)
+```
+
+
+## Linearity and normality 
+
+```{r, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(m2, 1:2)
+```
+
+The mean function appears to be linear and the residuals are well-approximated
+by the normal distribution.
+
+
+## Constant variance and influence {.build}
+
+```{r echo = FALSE}
+par(mfrow = c(1, 2))
+plot(m2, c(3, 5))
+```
+
+There are no influential points and the variance has been stabilized.
+
+
+## PIs from a valid model
+
+```{r echo=FALSE}
+pi2 <- predict(m2, data.frame(sqrtCrews = c(2, 4)), interval = "prediction")
+plot(sqrtRooms ~ sqrtCrews, data = cleaning2, pch = 16, col = "darkgreen")
+abline(m2, lwd = 2)
+lines(c(2, 2), c(pi2[1, 2], pi2[1, 3]), col = "tomato", lwd = 2)
+lines(c(4, 4), c(pi2[2, 2], pi2[2, 3]), col = "tomato", lwd = 2)
+```
+
+
+## Comparing PIs
+
+```{r}
+pi
+pi2^2
+```
+
+
+## Log Transformations
+
+
+## Example 2: Truck prices
+
+Can we use the age of a truck to predict what it's price should be?  Consider a 
+random sample of 43 pickup trucks.
+
+```{r echo = FALSE}
+pickups <- read.csv("http://andrewpbray.github.io/data/pickup.csv")
+plot(price ~ year, data = pickups, col = "steelblue", pch = 16)
+```
+
+
+## Consider unusual observations
+
+The very old truck will be a high leverage point and may not be of interest to 
+model. Let's only consider trucks made in the last 20 years.
+
+```{r echo = FALSE}
+plot(price ~ year, data = subset(pickups, year >= 1994), col = "steelblue", pch = 16)
+m1 <- lm(price ~ year, data = subset(pickups, year >= 1994))
+```
+
+
+## Linear nodel?
+
+```{r, echo=FALSE}
+summary(m1)$coef
+plot(price ~ year, data = subset(pickups, year >= 1994), col = "steelblue", pch = 16)
+abline(m1, lwd = 2)
+```
+
+
+## Linearity and normality {.build}
+
+```{r, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(m1, 1:2)
+```
+
+The normality assumption on the errors seems fine but there seems to be a quadratic
+trend in the mean function.
+
+
+## Constant variance and influence {.build}
+
+```{r echo = FALSE}
+par(mfrow = c(1, 2))
+plot(m1, c(3, 5))
+```
+
+One observation (44) should be investigated for its influence.  There is
+evidence of increasing variance in the residuals.
+
+
+## {.build}
+
+```{r, echo=1, fig.height=3}
+pickups2 <- transform(pickups, log_price = log(price))
+par(mfrow = c(1, 2))
+hist(pickups$price, main = "")
+hist(pickups2$log_price, main = "")
+```
+
+Variables that span multiple orders of magnitude often benefit from a natural
+log transformation.
+
+\[ Y_t = log_e(Y) \]
+
+
+## Log-transformed linear model
+
+```{r, echo=FALSE}
+m2 <- lm(log_price ~ year, data = subset(pickups2, year >= 1994))
+summary(m2)$coef
+plot(log_price ~ year, data = subset(pickups2, year >= 1994), col = "steelblue", pch = 16)
+abline(m2, lwd = 2)
+```
+
+
+## Linearity and normality {.build}
+
+```{r, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(m2, 1:2)
+```
+
+The residuals from this model appear less normal, though the quadratic trend in
+the mean function is now less apparent.
+
+
+## Constant variance and influence {.build}
+
+```{r echo = FALSE}
+par(mfrow = c(1, 2))
+plot(m2, c(3, 5))
+```
+
+There are no points flagged as influential and our variance has been stabilized.
+
+
+## Model interpretation
+
+```{r echo=FALSE}
+summary(m2)$coef
+```
+
+\[ \widehat{log(price)} = -258.99 + 0.13 * year \]
+
+For each additional year the car is newer, we would expect the log price of the
+car to increase on average by `r round(summary(m2)$coef[2, 1], 2)` dollars.
+
+Which isn't very useful . . .
+
+
+## Working with logs {.build}
+
+Two useful identities:
+
+- \[ log(a) - log(b) = log(\frac{a}{b}) \]
+- \[ e^{log(x)} = x \]
+
+
+## {.build}
+
+The slope coefficient for the log-transformed model is
+`r round(summary(m2)$coef[2, 1], 2)`, meaning the *log* price difference between
+cars that are one year apart is predicted to be `r round(summary(m2)$coef[2, 1], 2)`
+log dollars.
+
+\[
+\begin{eqnarray}
+log(price at year x + 1) - log(price at year x) &=& 0.13 \\
+log(\frac{price at year x + 1}{price at year x}) &=& 0.13 \\
+e^{log(\frac{price at year x + 1}{price at year x})} &=& e^{0.13} \\
+\frac{price at year x + 1}{price at year x} = 1.14 \\
+\end{eqnarray}
+\]
+
+For each additional year the car is newer we would expect the price of the car to
+increase on average by a factor of 1.14.
+
+
+## Transformations summary {.build}
+
+- If a linear model fit to the raw data leads to questionable residual plots,
+consider transformations.
+- Count data and prices often benefit from transformations.
+- The natural log and the square root are the most common, but you can use any 
+transformation you like.
+- Transformations may change model interpretations.
+- Non-constant variance is a serious problem but it can often be solved by transforming
+the response.
+- Transformations can also fix non-linearity, as can polynomials - coming next!
+
+
+# Polynomials
+
+## Multiple Regression: polynomials
+
+Multiple regression refers to the method of predicting one variable as a linear
+function of more than one predictor.
+
+*LA home price example*:
+
+\[ \widehat{price} = \beta_0 + \beta_1 sqft + \beta_2 bath \]
+
+But we could also introduc as the additional predictor a polynomial term of the
+existing predictor.
+
+\[ \widehat{price} = \beta_0 + \beta_1 sqft + \beta_2 sqft^2 \]
+
+
+## LA home prices{.flexbox .vcenter}
+
+\[ \widehat{logprice} = \beta_0 + \beta_1 logsqft \]
+
+```{r echo = FALSE, fig.height = 3.8, fig.width=6}
+LA <- read.csv("data/LA.csv")
+LA <- transform(LA, log_price = log(price), log_sqft = log(sqft))
+m1 <- lm(log_price ~ log_sqft, data = LA)
+plot(m1, 1)
+```
+
+-doesn't look quite right
+
+
+## Quadratic Model
+
+We could consider adding a quadratic term to our model:
+
+\[ \widehat{price} = \beta_0 + \beta_1 sqft + \beta_2 sqft^2 \]
+
+```{r}
+m2 <- lm(log_price ~ log_sqft + I(log_sqft^2), data = LA)
+summary(m2)$coef
+```
+
+
+## Comparing models
+
+```{r, echo=FALSE}
+plot(log_price ~ log_sqft, data = LA)
+abline(m1, col = "orange", lwd = 3)
+lines(sort(LA$log_sqft), sort(m2$fit), col = "steelblue", lwd = 3)
+legend(x=9,y=14,legend = c('linear','quadratic'),
+       lty=1,col=c('orange','steelblue'))
+```
+
+
+## Comparing models
+
+```{r}
+summary(m1)$coef
+```
+
+```{r}
+summary(m2)$coef
+```
+
+
+## Linear model
+
+```{r echo=FALSE}
+par(mfrow = c(2, 2))
+plot(m1)
+```
+
+
+## Linear model with quadratic
+
+```{r echo=FALSE}
+par(mfrow = c(2, 2))
+plot(m2)
+```
+
+
+## Model selection
+
+The residual plots for the second (more complex) model seem slightly better, so
+we're inclined to use that model.  We can also compare the explanatory power of
+the models by looking at AIC, BIC, and adjusted $R^2$.
+
+```{r}
+AIC(m1);AIC(m2)
+BIC(m1);BIC(m2)
+summary(m1)$adj;summary(m2)$adj
+```
+
+These two models are very similar - both are quite good in terms of validity
+and explanatory power - but the quadratic one edges out the simple linear one.
+
+## Model selection
+
+These are nested models, so we can use an F-test to see whether the model with the quadratic term is a significant improvement
+
+```{r echo=FALSE}
+library(car)
+anova(m1,m2)
+```
+
+We reject the null hypothesis that the coefficient for `logsqft^2` is equal to 0, and conclude that there is good evidence to support that the unrestricted model is better.
+
+# Standardization
+
+## Standardized coefficents
+
+- A standardized regression coefficient is simply the (\beta) estimate from a regression on standardized variables. 
+
+- A standardized variable is a variable that has a mean of 0 and a standard deviation of 1.
+
+## Why would we do this?
+
+- One reason for standardizing variables is that you can interpret the (\beta) estimates as partial correlation coefficients. 
+
+- Now that the variables are standardized you can compare how correlated they are to the response variable using their regression coefficients. 
+
+- Example: you want to compare the relative impact of two variables that are in different units
+
+## Let's make some fake data!
+
+Let's simulate some data for running models. To provide a clear demonstration we need explanatory variables that are independent normal variates.
+
+```{r results='hide'}
+set.seed(10)
+n = 90
+x1 = rnorm(n)
+x2 = rnorm(n)
+x3 = rnorm(n)
+#create noise b/c there is always error in real life
+epsilon = rnorm(n, 0, 3)
+#generate response: additive model plus noise, intercept=0
+y = 2*x1 + x2 + 3*x3 + epsilon
+#organize predictors in data frame
+sim_data = data.frame(y, x1, x2, x3)
+```
+
+##
+The `scale()` function standardizes the independent and dependent variables (mean center and divide by sd)
+```{r echo=FALSE}
+library(broom)
+sim_data_std = data.frame(scale(sim_data))
+mod = lm(y  ~ x1 + x2 + x3, data=sim_data)
+mod_std = lm(y  ~ x1 + x2 + x3, data=sim_data_std)
+tidy(mod)
+tidy(mod_std)
+```
+
+- The t-statistics (and p-values) don't change (but why is intercept 0?). 
+
+- t-statistic is a pivotal statistic; its value doesn't depend on the scale of the difference
+
+
+## How to standardize
+
+Traditionally, standardization is done as:
+
+$$stdVar_i = (var_i - \bar(var)) / sd_{var} $$
+
+in R, you can use `scale` or do the same thing by hand.
+
+However, there is no rule that this has to be the case
+
+## Centering
+
+- Centering: `centeredA = scale(A,scale=F)`
+
+- Centering decides where the baseline will be for your model
+    - You can subtract the mean
+    - Also possible to subtract meaningful value
+
+## Scaling
+
+- Scaling: `scaleA = scale(A,scale=T)`
+- Scaling changes the unit of the predictor variable
+    - Divide by meaningful unit
+    - Divide by standard deviation (combined with mean centering
+gives you z-score )
+    - Divide by 2 standard deviation ( coherent estimate when you
+have binary variable )
+
+## Why divide by 2 sd?
+
+- Andy Gelman (my favorite statistician) favors dividing by **2** standard deviations
+
+- Interpretation of regression coefficients is sensitive to the scale of the inputs. 
+
+- Dividing by `2*sd` sets interpretation of coefficient to be "if X goes from 1 standard deviation below the mean to 1 standard deviation above the mean..."
+
+- i.e., if X goes from low to high....
+
+- This makes resulting coefficients directly comparable to untransformed binary predictors
+
+
+## Does and dont's
+
+- Often, you will combine transformations and standardizations
+
+- do not subtract the mean and rescale an input variable before it has been logged (logged inputs and outputs are interpretated “elasticities” - rescaling muddies this)
+
+- scale first, then interact
+
+- do not scale categorical variables or binary variables 
+
+# wrap-up
+
+##
+
+## 
+
+Questions?
+
+## 
+
+Goal check
+
+## 
+
+Motivation for next class
+
+##
+
+```{r}
+sessionInfo()
+```

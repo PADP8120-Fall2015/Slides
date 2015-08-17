@@ -1,0 +1,279 @@
+---
+title: "Lecture 2: Manipulating and Visualizing Data"
+author: "Tyler Scott"
+date: "2015-02-09 ![Creative Commons License](images/cc-by.png)"
+output: 
+  ioslides_presentation:
+    css: soc504_s2015_slides.css
+---
+ 
+##
+
+<img src="images/data_workflow.png" width="800">
+
+Data manipulation and visualization are often afterthoughts, but shouldn't be!
+
+## 
+
+After this class students will be able to:
+
+- distinguish between the two main purposes of visualizations
+- explain the layered grammer of graphics
+- be excited to struggle with `ggplot2`
+
+## Why are we doing this?
+
+Visualization is important both for
+
+- learning about your data
+- communicating the results of your analyses
+
+Models and tables are fine, but often I find that visualizations are more helpful for understanding what is going on (plus they make your presentations look WAY cooler)
+
+# Examples 
+
+# visualizations for learning
+
+## 
+
+4 data sets with the same regression results: $y = 3 + 0.5 x$
+
+<img src="images/anscombe_quartet.png" width="600">
+
+<div class="cite">
+http://commons.wikimedia.org/wiki/File:Anscombe%27s_quartet_3.svg
+</div>
+
+# visualizations for communicating
+
+##  
+
+<img src="images/challenger_crew.jpg" width="500">
+
+<div class="cite">
+http://commons.wikimedia.org/wiki/File:Challenger_flight_51-l_crew.jpg
+</div>
+
+Example from [Tufte (1997)](http://www.edwardtufte.com/tufte/books_visex)
+
+##  { .flexbox .vcenter }
+
+<img src="images/challenger_title.png" width="600">
+
+##  { .flexbox .vcenter }
+
+<img src="images/challenger_data.png" width="600">
+
+##  { .flexbox .vcenter }
+
+<img src="images/challenger_conclusion.png" width="600">
+
+##  { .flexbox .vcenter }
+
+<img src="images/challenger_recommendation.png" width="600">
+
+
+## { .flexbox .vcenter }
+
+<img src="images/challenger_tufte.png" width="800">
+
+## 
+
+<img src="images/hockey_stick.jpg" width="800">
+
+## { .smaller }
+
+<img src="images/hockey_stick.jpg" width="500">
+
+- Green dots show the 30-year average of the new PAGES 2k reconstruction
+- Red curve shows the global mean temperature, according HadCRUT4 data from 1850 onwards
+- Blue curve is the original hockey stick of Mann, Bradley and Hughes (1999) with its uncertainty range (light blue). 
+- Graph by [Klaus Bitterman](http://en.wikipedia.org/wiki/File:T_comp_61-90.pdf)
+
+##  
+
+<img src="images/healy_violent.png" height="500">
+
+by Healy
+
+## 
+
+<img src="images/kenworthy_health.png" height="500">
+
+By Kenworthy
+
+##
+
+<img src="images/jackman_outlier.png">
+
+By Jackman
+
+##
+
+Next example from the wonderful paper:
+
+- Kasetellec and Leoni (2007) [Using Graphs Instead of Tables in Political Science](http://dx.doi.org/10.1017/S1537592707072209)
+- They also have a [code respository](http://tables2graphs.com/doku.php)
+
+## { .build .columns-2}
+
+<img src="images/kastellec_using_2007_tab8.png" width="325">
+
+<img src="images/kastellec_using_2007_fig7.png" width="325">
+
+
+## 
+
+- When was the last time you saw a table of regression results in a talk?
+- When was the last time you saw a graph likes these in a talk?
+- Which do you want to have in your talk?
+
+# making graphs
+
+## graphing in R
+
+- base graphics by Ross Ihaka: model is paper and pencil (no grammar)
+- grid graphics by Paul Murrell
+- lattice graphics by Deepayan Sarkar
+- ggplot2 by Hadley Wickham (based on Wilkinson)
+
+## note on coding error
+
+<img src="images/healy_data_2014_fig5.png" width="400">
+
+Thank you to Kieran Healy for being open about this so that we can all learn from it
+
+## note on coding error { .build }
+
+```{r eval=FALSE}
+corrplot(c.mat, method="shade", shade.col=NA, tl.col="black",
+         order="hclust", hclust.method="ward", tl.srt=45)
+
+corrplot(c.mat,add=TRUE, type="lower", method="number",
+         order="AOE", diag=FALSE, tl.pos="n", cl.pos="n")
+```
+
+
+How could you write this differently?
+
+## note on coding error
+
+Don't repeat yourself
+
+```{r eval=FALSE}
+data.to.plot <- c.mat
+kHclustMethod <- "ward"
+kOrder <- "hclust"
+
+corrplot(data.to.plot, method = "shade", shade.col = NA, tl.col = "black",
+         order = kOrder, hclust.method = kHclustMethod, 
+         tl.srt = 45)
+
+corrplot(data.to.plot, add = TRUE, type = "lower", method = "number",
+         order = kOrder, hclust.method = kHclustMethod, 
+         diag = FALSE, tl.pos = "n", cl.pos = "n")
+```
+
+
+## ggplot2
+
+Why `ggplot2`?
+
+- based on a grammar
+- excellent faceting (especially compared to base R)
+- integrates well with `dplyr` and the tidy data philosophy
+- lots of add-ons: `ggalley` and `ggmaps`
+- natural transition to `ggvis`, the next big thing
+- strong and active community
+
+## New York 311 data, Nicole Pangborn
+
+<img src="images/pangborn_311_callmap.png" width="800">
+
+## New York 311 data, Nicole Pangborn
+
+```{r eval=FALSE}
+library(ggmap)
+library(ggplot2)
+NYC <- get_map(location = "new york, new york", zoom = 11)
+p <- ggmap(NYC)
+p + geom_point(aes(x = dfcalls_small$Longitude, y = dfcalls_small$Latitude)) +
+  labs(title = "311 calls in NYC, 1/28/15 - 1/29/15") + 
+  theme(plot.title = element_text(size=rel(2)))
+```
+
+## 
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+library(ggplot2)
+packageVersion("ggplot2")
+```
+
+More on [ggplot2 version 1.0](http://blog.rstudio.org/2015/01/09/ggplot2-updates/)
+
+##
+
+Next, an example based on [Dawn Koffman's OPR workshop](http://opr.princeton.edu/workshops/201501/)
+
+## 
+
+Basic components:
+
+- default dataset and set of mappings from variables to aesthetics
+- one or more layers
+
+## 
+
+```{r}
+world.pop.data <- read.csv("data/wdata.csv", head = TRUE, sep = ",")
+world.pop.data <- tbl_df(world.pop.data)
+```
+
+```{r}
+glimpse(world.pop.data)
+```
+
+##
+
+```{r}
+world.pop.data
+```
+
+##
+
+All together, the layered grammar defines a plot as the combination of:
+
+- A default dataset and set of mappings from variables to aesthetics.
+- One or more layers, each composed of a geometric object, a statistical
+transformation, and a position adjustment, and optionally, a dataset and
+aesthetic mappings.
+- One scale for each aesthetic mapping.
+- A coordinate system.
+- The faceting specification.
+
+[Wickham (2009)](http://www.amazon.com/ggplot2-Elegant-Graphics-Data-Analysis/dp/0387981403)
+
+
+## 
+
+Questions about visualization and ggplot2?
+
+One thing that you should know that most people don't talk about:
+
+- you will build and tweak your graphs over time; the first graph is never the final graph
+
+## 
+
+Goal check
+
+## 
+
+Review and motivation for next class
+
+## going forward
+
+- `ggplot2` is confusing at first
+- but it will make you powerful
+
+It just takes practice!

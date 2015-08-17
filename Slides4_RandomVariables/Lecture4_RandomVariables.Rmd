@@ -1,0 +1,459 @@
+---
+title: "Lecture 4: Distribution of Random Variables"
+author: "Tyler Scott"
+date: "2015-07-22 ![Creative Commons License](images/cc-by.png)" 
+output: ioslides_presentation
+widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
+---
+
+# Overview
+ 
+## Today's Material
+
+- Random Variables
+- Distributions
+
+## Goals
+
+# Random variables
+
+## Random variables
+
+- A **random variable** is a variable whose value is subject to variations due to chance
+- The random variables that we study will come in two varieties,
+  **discrete** or **continuous**.
+- Discrete random variable are random variables that take on only a
+countable number of possibilities.
+  * $P(X = k)$
+- Continuous random variable can take any value on the real line or some subset of the real line.
+  * $P(X \in A)$
+- In the real world, we often blur the lines between discrete and continuous
+
+## Examples of variables that can be thought of as random variables
+
+- The $(0-1)$ outcome of the flip of a coin
+- The outcome from the roll of a die
+- The BMI of a subject four years after a baseline measurement
+- The hypertension status of a subject randomly drawn from a population
+- Difference between students' beginning-of-year and end-or-year test scores
+
+## Probability Mass Function
+
+A probability mass function (PMF) evaluated at a value corresponds to the
+probability that a random variable takes that value. To be a valid
+pmf a function, $p$, must satisfy
+
+  1. $p(x) \geq 0$ for all $x$
+  2. $\sum_{x} p(x) = 1$
+
+The sum is taken over all of the possible values for $x$.
+
+## Example
+
+Let $X$ be the result of a coin flip where $X=0$ represents
+tails and $X = 1$ represents heads.
+$$
+p(x) = (1/2)^{x} (1/2)^{1-x} ~~\mbox{ for }~~x = 0,1
+$$
+Suppose that we do not know whether or not the coin is fair; Let
+$\theta$ be the probability of a head expressed as a proportion
+(between 0 and 1).
+$$
+p(x) = \theta^{x} (1 - \theta)^{1-x} ~~\mbox{ for }~~x = 0,1
+$$
+
+## Probability Density Function
+
+A probability density function (pdf), is a function associated with
+a continuous random variable 
+
+  *Areas under pdfs correspond to probabilities for that random variable*
+
+To be a valid pdf, a function $f$ must satisfy
+
+1. $f(x) \geq 0$ for all $x$
+
+2. The area under $f(x)$ is one.
+
+## Caveat for continuous pdfs
+
+-One tricky aspect to remember is that for a continuous pdf, the probability that x takes any one particular value is undefined
+
+-Since we assume that *x* is continuous, then it can take ANY real value
+
+-Thus, there is effectively 0 chance that *x* will take any one value (e.g., x = 0.124556), since there are an infinite number of possible values (e.g., x = 0.124567 instead)
+
+-Because of this, for continuous pdfs we use <=, >=, <, or >
+
+## CDF and survival function
+
+- The **cumulative distribution function** (CDF) of a random variable $X$ is defined as the function 
+$$
+F(x) = P(X \leq x)
+$$
+- This definition applies regardless of whether $X$ is discrete or continuous.
+- The **survival function** of a random variable $X$ is defined as
+$$
+S(x) = P(X > x)
+$$
+- Notice that $S(x) = 1 - F(x)$
+- For continuous random variables, the PDF is the derivative of the CDF
+
+
+## Quantiles
+
+- The  $\alpha^{th}$ **quantile** of a distribution with distribution function $F$ is the point $x_\alpha$ so that
+$$
+F(x_\alpha) = \alpha
+$$
+- A **percentile** is simply a quantile with $\alpha$ expressed as a percent
+- The **median** is the $50^{th}$ percentile
+
+#Expected value
+
+## Expected values
+
+- The **expected value** or **mean** of a random variable is the center of its distribution
+
+-Think of EV as the place where the "scale" is balanced 50/50
+
+- For discrete random variable $X$ with PMF $p(x)$, it is defined as follows
+    $$
+    E[X] = \sum_x xp(x).
+    $$
+    where the sum is taken over the possible values of $x$
+- $E[X]$ represents the center of mass of a collection of locations and weights, $\{x, p(x)\}$
+
+
+## Example
+### Find the center of mass of the bars
+```{r ,fig.height=3.5,fig.width=8, fig.align='center', echo = FALSE,message=F}
+library(UsingR); data(galton)
+par(mfrow=c(1,2))
+hist(galton$child,col="blue",breaks=100)
+hist(galton$parent,col="blue",breaks=100)
+```
+
+## Example
+
+- Suppose a coin is flipped and $X$ is declared $0$ or $1$ corresponding to a head or a tail, respectively
+- What is the expected value of $X$? 
+    $$
+    E[X] = .5 \times 0 + .5 \times 1 = .5
+    $$
+```{r, echo = FALSE, fig.height=3.0, fig.width = 3.5, fig.align='center',message=F}
+barplot(height = c(.5, .5), names = c(0, 1), border = "black", col = "lightblue", space = .75)
+```
+
+##
+- Suppose that a die is rolled and $X$ is the number face up
+- What is the expected value of $X$?
+    $$
+    E[X] = 1 \times \frac{1}{6} + 2 \times \frac{1}{6} +\\
+    3 \times \frac{1}{6} + 4 \times \frac{1}{6} +
+    5 \times \frac{1}{6} + 6 \times \frac{1}{6} = 3.5
+    $$
+-What if we draw this like in the previous slide?    
+    
+## Continuous random variables
+
+- For a continuous random variable, $X$, with density, $f$, the expected
+    value is defined as follows
+    $$
+    E[X] = \mbox{the area under the function}~~~ t f(t)
+    $$
+- This definition borrows from the definition of center of mass for a continuous body
+
+## Example
+
+- Consider a density where $f(x) = 1$ for $x$ between zero and one
+- (Is this a valid density?)
+- Suppose that $X$ follows this density; what is its expected value?  
+```{r, fig.height=4, fig.width=8, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(c(-0.25, 0, 0, 1, 1, 1.25), c(0, 0, 1, 1, 0, 0), type = "l", lwd = 3, frame = FALSE, xlab="", ylab = ""); title('f(t)')
+plot(c(-0.25, 0, 1, 1, 1.25), c(0, 0, 1, 0, 0), type = "l", lwd = 3, frame = FALSE, xlab="", ylab = ""); title('t f(t)')
+```
+
+## Example
+
+1. Let $X_i$ for $i=1,\ldots,n$ be a collection of random variables, each from a distribution with mean $\mu$
+2. Calculate the expected value of the sample average of the $X_i$
+$$
+  \begin{eqnarray*}
+    E\left[ \frac{1}{n}\sum_{i=1}^n X_i\right]
+    & = & \frac{1}{n} E\left[\sum_{i=1}^n X_i\right] \\
+    & = & \frac{1}{n} \sum_{i=1}^n E\left[X_i\right] \\
+    & = & \frac{1}{n} \sum_{i=1}^n \mu =  \mu.
+  \end{eqnarray*}
+$$
+
+##
+- Therefore, the expected value of the **sample mean** is the population mean that it's trying to estimate
+- When the expected value of an estimator is what its trying to estimate, we say that the estimator is **unbiased**
+- What does "bias" mean then in statistics?
+
+## Uncertainty and random variables
+
+## Measures of dispersion
+-Much of what we have discussed so far relates to measures of central tendency
+
+-We also are interested in describing our level of certainty about a parameter estimate
+
+-Measures of dispersion quantify the uncertainty of an estimate
+
+## Variance
+
+- The variance of a random variable is a measure of *spread*
+- If $X$ is a random variable with mean $\mu$, the variance of $X$ is defined as
+
+$$
+Var(X) = E[(X - \mu)^2]
+$$
+    
+the expected (squared) distance from the mean
+
+- Densities with a higher variance are more spread out than densities with a lower variance
+
+## Example
+
+- What's the variance from the result of a toss of a die? 
+
+  - $E[X] = 3.5$ 
+  - $E[X^2] = 1 ^ 2 \times \frac{1}{6} + 2 ^ 2 \times \frac{1}{6} + 3 ^ 2 \times \frac{1}{6} + 4 ^ 2 \times \frac{1}{6} + 5 ^ 2 \times \frac{1}{6} + 6 ^ 2 \times \frac{1}{6} = 15.17$ 
+
+- $Var(X) = E[X^2] - E[X]^2 \approx 2.92$
+
+
+## Example
+
+- What's the variance from the result of the toss of a coin with probability of heads (1) of $p$? 
+
+  - $E[X] = 0 \times (1 - p) + 1 \times p = p$
+  - $E[X^2] = E[X] = p$ 
+
+$$Var(X) = E[X^2] - E[X]^2 = p - p^2 = p(1 - p)$$
+
+## Distributions with increasing variance
+```{r, echo = FALSE, fig.height = 6, fig.width = 8, fig.align='center'}
+library(ggplot2)
+xvals <- seq(-10, 10, by = .01)
+dat <- data.frame(
+    y = c(
+        dnorm(xvals, mean = 0, sd = 1),
+        dnorm(xvals, mean = 0, sd = 2),
+        dnorm(xvals, mean = 0, sd = 3),
+        dnorm(xvals, mean = 0, sd = 4)
+    ),
+    x = rep(xvals, 4),
+    factor = factor(rep(1 : 4, rep(length(xvals), 4)))
+)
+ggplot(dat, aes(x = x, y = y, color = factor)) + geom_line(size = 2)    
+```
+
+## The sample variance 
+- The sample variance is 
+$$
+S^2 = \frac{\sum_{i=1} (X_i - \bar X)^2}{n-1}
+$$
+(almost, but not quite, the average squared deviation from
+the sample mean)
+- It is also a random variable
+  - It has an associate population distribution
+  - Its expected value is the population variance
+  - Its distribution gets more concentrated around the population variance with more data
+- Its square root is the sample standard deviation
+
+## Standard Deviation
+
+- Convenient computational form
+$$
+Var(X) = E[X^2] - E[X]^2
+$$
+- If $a$ is constant then $Var(aX) = a^2 Var(X)$
+- The square root of the variance is called the **standard deviation**
+- The standard deviation has the same units as $X$
+
+## Covariance
+
+- The **covariance** between two random variables $X$ and $Y$ is defined as 
+$$
+Cov(X, Y) = E[(X - \mu_x)(Y - \mu_y)] = E[X Y] - E[X]E[Y]
+$$
+- The following are useful facts about covariance
+  1. $Cov(X, Y) = Cov(Y, X)$
+  2. $Cov(X, Y)$ can be negative or positive
+  3. $|Cov(X, Y)| \leq \sqrt{Var(X) Var(y)}$
+
+
+## 'iid' random variables
+
+- Random variables are said to be 'iid' if they are independent and identically distributed
+- For instance, we might assume that dice rolls are iid
+- iid random variables are the default model for random samples
+- Many of the important theories of statistics are founded on assuming that variables are iid
+
+## 
+-We have already discussed distributions to some extent (e.g., PDF)
+
+-There are many different probability distribution forms
+
+-For 8120, we will primarily focus on the normal distribution
+
+
+# Normal Distribution
+
+## Facts about the normal density
+
+- If $X \sim \mbox{N}(\mu,\sigma^2)$ the $Z = \frac{X -\mu}{\sigma}$ is standard normal
+- If $Z$ is standard normal $$X = \mu + \sigma Z \sim \mbox{N}(\mu, \sigma^2)$$
+- The non-standard normal density is $$\phi\{(x - \mu) / \sigma\}/\sigma$$
+
+## More facts about the normal density
+
+1. Approximately $68\%$, $95\%$ and $99\%$  of the normal density lies within $1$, $2$ and $3$ standard deviations from the mean, respectively
+2. $-1.28$, $-1.645$, $-1.96$ and $-2.33$ are the $10^{th}$, $5^{th}$, $2.5^{th}$ and $1^{st}$ percentiles of the standard normal distribution respectively
+3. By symmetry, $1.28$, $1.645$, $1.96$ and $2.33$ are the $90^{th}$, $95^{th}$, $97.5^{th}$ and $99^{th}$ percentiles of the standard normal distribution respectively
+
+
+## Question
+
+- What is the $95^{th}$ percentile of a $N(\mu, \sigma^2)$ distribution? 
+  - Quick answer in R `qnorm(.95, mean = mu, sd = sd)`
+- We want the point $x_0$ so that $P(X \leq x_0) = .95$
+
+
+## Other properties
+
+- The normal distribution is symmetric and peaked about its mean (therefore the mean, median and mode are all equal)
+- The square of a *standard normal* random variable follows what is called **chi-squared** distribution 
+- The exponent of a normally distributed random variables follows what is called the **log-normal** distribution 
+- As we will see later, many random variables, properly normalized, *limit* to a normal distribution
+
+
+## The 'Normal model'
+
+* Bell Shaped:  unimodal, symmetric
+* A Normal model for every mean and standard deviation.
+  * $\mu$ (read “mew”) represents the population mean.
+  * $\sigma$  (read “sigma”) represents the population standard deviation.
+  * $N(\mu, \sigma)$ represents a Normal model with mean m and standard deviation s. 
+
+$$f(x)\quad =\quad \frac { 1 }{ \sigma \sqrt { 2\pi  }  } { e }^{ -\frac { { \left( x-\mu  \right)  }^{ 2 } }{ { 2\sigma  }^{ 2 } }  }$$
+
+* $N(0, 1)$ is called the standard Normal model, or the standard Normal distribution.
+
+
+#Non-normal distributions
+
+## The Bernoulli distribution
+
+- The **Bernoulli distribution** arises as the result of a binary outcome
+- Bernoulli random variables take (only) the values 1 and 0 with probabilities of (say) $p$ and $1-p$ respectively
+- The PMF for a Bernoulli random variable $X$ is $$P(X = x) =  p^x (1 - p)^{1 - x}$$
+- The mean of a Bernoulli random variable is $p$ and the variance is $p(1 - p)$
+- If we let $X$ be a Bernoulli random variable, it is typical to call $X=1$ as a "success" and $X=0$ as a "failure"
+
+## Possible likelihoods for a small n
+
+```{r, fig.height=4, fig.width=6, echo = FALSE, results='hide'}
+n <- 5
+pvals <- seq(0, 1, length = 1000)
+plot(c(0, 1), c(0, 1.2), type = "n", frame = FALSE, xlab = "p", ylab = "likelihood")
+text((0 : n) /n, 1.1, as.character(0 : n))
+sapply(0 : n, function(x) {
+  phat <- x / n
+  if (x == 0) lines(pvals,  ( (1 - pvals) / (1 - phat) )^(n-x), lwd = 3)
+  else if (x == n) lines(pvals, (pvals / phat) ^ x, lwd = 3)
+  else lines(pvals, (pvals / phat ) ^ x * ( (1 - pvals) / (1 - phat) ) ^ (n-x), lwd = 3) 
+  }
+)
+title(paste("Likelihoods for n = ", n))
+```
+
+
+## Binomial trials
+
+- The *binomial random variables* are obtained as the sum of iid Bernoulli trials
+- In specific, let $X_1,\ldots,X_n$ be iid Bernoulli$(p)$; then $X = \sum_{i=1}^n X_i$ is a binomial random variable
+- The binomial mass function is
+$$
+P(X = x) = 
+\left(
+\begin{array}{c}
+  n \\ x
+\end{array}
+\right)
+p^x(1 - p)^{n-x}
+$$
+for $x=0,\ldots,n$
+
+## Choose
+
+- Recall that the notation 
+  $$\left(
+    \begin{array}{c}
+      n \\ x
+    \end{array}
+  \right) = \frac{n!}{x!(n-x)!}
+  $$ (read "$n$ choose $x$") counts the number of ways of selecting $x$ items out of $n$
+  without replacement disregarding the order of the items
+
+$$\left(
+    \begin{array}{c}
+      n \\ 0
+    \end{array}
+  \right) =
+\left(
+    \begin{array}{c}
+      n \\ n
+    \end{array}
+  \right) =  1
+  $$ 
+
+## Example justification of the binomial likelihood
+
+- Consider the probability of getting $6$ heads out of $10$ coin flips from a coin with success probability $p$ 
+- The probability of getting $6$ heads and $4$ tails in any specific order is
+  $$
+  p^6(1-p)^4
+  $$
+- There are 
+$$\left(
+\begin{array}{c}
+  10 \\ 6
+\end{array}
+\right)
+$$
+possible orders of $6$ heads and $4$ tails
+
+
+## The Poisson distribution
+* Used to model counts
+* The Poisson mass function is
+$$
+P(X = x; \lambda) = \frac{\lambda^x e^{-\lambda}}{x!}
+$$
+for $x=0,1,\ldots$
+* The mean of this distribution is $\lambda$
+* The variance of this distribution is $\lambda$
+* Notice that $x$ ranges from $0$ to $\infty$
+
+## Poisson distribution by rate
+
+<img src="http://www.umass.edu/wsp/images/poisson3.gif" width="600px" height='400px'>
+
+$$ \lambda = rate of occurence $$ 
+
+## Some uses for the Poisson distribution
+* Modeling event/time data
+* Modeling radioactive decay
+* Modeling survival data
+* Modeling unbounded count data 
+* Modeling contingency tables
+* Approximating binomials when $n$ is large and $p$ is small
+
+## Questions?
+
+# Goal check
+
