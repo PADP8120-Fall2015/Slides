@@ -1,0 +1,660 @@
+---
+title: "Multivariate regression"
+author: "Tyler Scott"
+date: "2015-07-25 ![Creative Commons Attribution License](images/cc-by.png)"
+output: 
+  ioslides_presentation:
+    css: soc504_s2015_slides.css
+---
+
+```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
+# make this an external chunk that can be included in any file
+library(knitr)
+options(width = 100)
+opts_chunk$set(message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig/')
+
+options(xtable.type = 'html')
+knit_hooks$set(inline = function(x) {
+  if(is.numeric(x)) {
+    round(x, getOption('digits'))
+  } else {
+    paste(as.character(x), collapse = ', ')
+  }
+})
+knit_hooks$set(plot = knitr:::hook_plot_html)
+runif(1)
+```
+
+## Topics
+
+- Multiple regression
+- Fitting a multiple regression
+- Drawing inferences from multiple regression
+- Examine what variables should be in (or out of) the model
+- Diagnostics on multivariate models
+
+## Goals
+
+After this class you will be able to 
+
+- explain what a regression line is in a multivariate setting
+- fit a multiple regression
+- compare and contrast extrapolation and interpolation
+- use a multiple regression for inference
+- use a multiple regression for prediction
+- perform diagnostic checks on multiple variable models
+
+Last class we did this with single predictor model and now we are going to do it with two predictor models.
+
+
+# Multiple regression overview
+
+## The geometry of regression models 
+
+The mean function is . . .
+
+- A *line* when you have one continuous $x$.
+- *Parallel lines* when you have one continuous $x_1$ and one categorical $x_2$.
+- *Unrelated lines* when you have one continuous $x_1$, one categorical $x_2$, 
+and an interaction term $x_1 * x_2$.
+
+When you have two continuous predictors $x_1$, $x_2$, then your mean function
+is . . .
+
+*a plane*
+
+## The geometry of regression models 
+
+- When you have two continuous predictors $x_1$, $x_2$, then your mean function
+is *a plane*.
+- When you have two continuous predictors $x_1$, $x_2$, and a categorical 
+predictor $x_3$, then your mean function represents *parallel planes*.
+
+## Motivating example: education, father's education, and income.
+
+Here is some data from the GSS.
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+load("data/gss_2010_training.RData")
+gss.training <- tbl_df(gss.training)
+gss <- select(gss.training, income06_n, educ, maeduc, paeduc) %>%
+  filter(!is.na(income06_n), !is.na(educ), !is.na(maeduc), !is.na(paeduc))
+# NOTE: DROPPING MISSING DATA LIKE THIS CAN BE DANGEROUS
+gss <- rename(gss, income = income06_n)
+```
+
+## 
+
+```{r}
+suppressPackageStartupMessages(library(GGally))
+pm <- ggpairs(select(gss, educ, paeduc, income))
+pm
+```
+
+##
+
+```{r}
+suppressPackageStartupMessages(library(scatterplot3d))
+scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=20)
+```
+
+##
+
+```{r}
+scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=40)
+```
+
+##
+
+```{r}
+scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=60)
+```
+
+##
+
+```{r}
+scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=80)
+```
+
+## Adding a regression plane
+
+
+```{r}
+s3d <- scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=20)
+my.lm <- lm(gss$income ~ gss$educ + gss$paeduc)
+s3d$plane3d(my.lm)
+```
+
+##
+
+```{r}
+s3d <- scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=40)
+my.lm <- lm(gss$income ~ gss$educ + gss$paeduc)
+s3d$plane3d(my.lm)
+```
+
+##
+
+```{r}
+s3d <- scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=60)
+my.lm <- lm(gss$income ~ gss$educ + gss$paeduc)
+s3d$plane3d(my.lm)
+```
+
+
+##
+
+```{r}
+s3d <- scatterplot3d(x=gss$educ, y=gss$paeduc, z=gss$income, 
+              xlab="Education", ylab="Father's education", 
+              zlab="Income category", pch=20, angle=80)
+my.lm <- lm(gss$income ~ gss$educ + gss$paeduc)
+s3d$plane3d(my.lm)
+```
+
+##
+
+The regression plane is the plane that minimizes the sum of the squared residuals. The residual is the difference between the predicted income and actual income for each person in the sample.
+
+$$\mbox{income}_i = \beta_0 + \beta_1 \times \mbox{educ}_i + \beta_2 \times \mbox{paeduc}_i + \mbox{residual}_i$$ 
+
+$$\widehat{\mbox{income}}_i = \beta_0 + \beta_1 \times \mbox{educ}_i + \beta_2 \times \mbox{paeduc}_i$$ 
+
+## { .smaller }
+
+Model is: $$\widehat{\mbox{income}}_i = \beta_0 + \beta_1 \times \mbox{educ}_i + \beta_2 \times \mbox{paeduc}_i$$ 
+
+
+$$\beta_1 = \frac{cor(income, educ) - cor(educ, paeduc) \times cor(income, paeduc)}{ (1 - cor(educ, paeduc)^2 ) } \times \frac{SD(income)}{SD(educ)}$$
+
+- Note what happens when educ and paeduc are uncorrelated
+- Note what happens when educ and paeduc are correlated
+- If you wanted to decrease $\beta_1$ what kind of extra variable should you add to the model?
+
+<div class="cite">
+See [Berk (2004)](http://www.amazon.com/Regression-Analysis-Constructive-Quantitative-Techniques/dp/0761929045) p. 112
+</div>
+
+## { .smaller }
+
+Fitting multiple regression in R using lm vs. by hand:
+
+```{r}
+library(broom)
+fit <- lm(income ~ educ + paeduc, data = gss)
+tidy(fit)
+```
+
+```{r}
+numerator <- cor(gss$income, gss$educ) - (cor(gss$educ, gss$paeduc) * cor(gss$income, gss$paeduc))
+denominator <- 1 - cor(gss$educ, gss$paeduc)^2
+numerator / denominator * (sd(gss$income) / sd(gss$educ))
+```
+
+# Conducting multiple regression
+
+## Example
+* An insurance company is interested in how last year's claims can predict a person's time in the hospital this year. 
+  * They want to use an enormous amount of data contained in claims to predict a single number. Simple linear regression is not equipped to handle more than one predictor.
+* How can one generalize SLR to incoporate lots of regressors for
+the purpose of prediction?
+* What are the consequences of adding lots of regressors? 
+  * Surely there must be consequences to throwing variables in that aren't related to Y?
+  * Surely there must be consequences to omitting variables that are?
+
+## The linear model
+* The general linear model extends simple linear regression (SLR)
+by adding terms linearly into the model.
+$$
+Y_i =  \beta_1 X_{1i} + \beta_2 X_{2i} + \ldots +
+\beta_{p} X_{pi} + \epsilon_{i} 
+= \sum_{k=1}^p X_{ik} \beta_j + \epsilon_{i}
+$$
+* Here $X_{1i}=1$ typically, so that an intercept is included.
+* Least squares (and hence ML estimates under iid Gaussianity 
+of the errors) minimizes
+$$
+\sum_{i=1}^n \left(Y_i - \sum_{k=1}^p X_{ki} \beta_j\right)^2
+$$
+* Note, the important linearity is linearity in the coefficients.
+Thus
+$$
+Y_i =  \beta_1 X_{1i}^2 + \beta_2 X_{2i}^2 + \ldots +
+\beta_{p} X_{pi}^2 + \epsilon_{i} 
+$$
+is still a linear model. (We've just squared the elements of the
+predictor variables.)
+
+
+## How to get estimates
+* Recall that the LS estimate for regression through the origin, $E[Y_i]=X_{1i}\beta_1$, was $\sum X_i Y_i / \sum X_i^2$.
+* Let's consider two regressors, $E[Y_i] = X_{1i}\beta_1 + X_{2i}\beta_2 = \mu_i$. 
+* Least squares tries to minimize
+$$
+\sum_{i=1}^n (Y_i - X_{1i} \beta_1 - X_{2i} \beta_2)^2
+$$
+
+## Result
+$$\hat \beta_1 = \frac{\sum_{i=1}^n e_{i, Y | X_2} e_{i, X_1 | X_2}}{\sum_{i=1}^n e_{i, X_1 | X_2}^2}$$
+* That is, the regression estimate for $\beta_1$ is the regression 
+through the origin estimate having regressed $X_2$ out of both
+the response and the predictor.
+* (Similarly, the regression estimate for $\beta_2$ is the regression  through the origin estimate having regressed $X_1$ out of both the response and the predictor.)
+* More generally, multivariate regression estimates are exactly those having removed the linear relationship of the other variables from both the regressor and response.
+
+## Example with two variables
+* $Y_{i} = \beta_1 X_{1i} + \beta_2 X_{2i}$ where  $X_{2i} = 1$ is an intercept term.
+* Notice the fitted coefficient of $X_{2i}$ on $Y_{i}$ is $\bar Y$
+    * The residuals $e_{i, Y | X_2} = Y_i - \bar Y$
+* Notice the fitted coefficient of $X_{2i}$ on $X_{1i}$ is $\bar X_1$
+    * The residuals $e_{i, X_1 | X_2}= X_{1i} - \bar X_1$
+* Thus
+$$
+\hat \beta_1 = \frac{\sum_{i=1}^n e_{i, Y | X_2} e_{i, X_1 | X_2}}{\sum_{i=1}^n e_{i, X_1 | X_2}^2} = \frac{\sum_{i=1}^n (X_i - \bar X)(Y_i - \bar Y)}{\sum_{i=1}^n (X_i - \bar X)^2}
+= Cor(X, Y) \frac{Sd(Y)}{Sd(X)}
+$$
+
+
+## The general case
+* Least squares solutions have to minimize
+$$
+\sum_{i=1}^n (Y_i - X_{1i}\beta_1 - \ldots - X_{pi}\beta_p)^2
+$$
+* The least squares estimate for the coefficient of a multivariate regression model is exactly regression through the origin with the linear relationships with the other regressors removed from both the regressor and outcome by taking residuals. 
+* In this sense, multivariate regression "adjusts" a coefficient for the linear impact of the other variables. 
+
+## Demonstration by simulation
+### Linear model with two variables
+```{r}
+n = 100; x = rnorm(n); x2 = rnorm(n); x3 = rnorm(n)
+y = 1 + x + x2 + x3 + rnorm(n, sd = .1)
+ey = resid(lm(y ~ x2 + x3))
+ex = resid(lm(x ~ x2 + x3))
+sum(ey * ex) / sum(ex ^ 2)
+coef(lm(ey ~ ex - 1))
+coef(lm(y ~ x + x2 + x3)) 
+```
+
+## Interpretation of the coefficients
+$$E[Y | X_1 = x_1, \ldots, X_p = x_p] = \sum_{k=1}^p x_{k} \beta_k$$
+
+$$
+E[Y | X_1 = x_1 + 1, \ldots, X_p = x_p] = (x_1 + 1) \beta_1 + \sum_{k=2}^p x_{k} \beta_k
+$$
+
+$$
+E[Y | X_1 = x_1 + 1, \ldots, X_p = x_p]  - E[Y | X_1 = x_1, \ldots, X_p = x_p]$$
+$$= (x_1 + 1) \beta_1 + \sum_{k=2}^p x_{k} \beta_k + \sum_{k=1}^p x_{k} \beta_k = \beta_1 $$
+So that the interpretation of a multivariate regression coefficient is the expected change in the response per unit change in the regressor, holding all of the other regressors fixed.
+
+In the next lecture, we'll do examples and go over context-specific
+interpretations.
+
+## Fitted values, residuals and residual variation
+
+All of our SLR quantities can be extended to linear models
+* Model $Y_i = \sum_{k=1}^p X_{ik} \beta_{k} + \epsilon_{i}$ where $\epsilon_i \sim N(0, \sigma^2)$
+* Fitted responses $\hat Y_i = \sum_{k=1}^p X_{ik} \hat \beta_{k}$
+* Residuals $e_i = Y_i - \hat Y_i$
+* Variance estimate $\hat \sigma^2 = \frac{1}{n-p} \sum_{i=1}^n e_i ^2$
+* To get predicted responses at new values, $x_1, \ldots, x_p$, simply plug them into the linear model $\sum_{k=1}^p x_{k} \hat \beta_{k}$
+* Coefficients have standard errors, $\hat \sigma_{\hat \beta_k}$, and
+$\frac{\hat \beta_k - \beta_k}{\hat \sigma_{\hat \beta_k}}$
+follows a $T$ distribution with $n-p$ degrees of freedom.
+* Predicted responses have standard errors and we can calculate predicted and expected response intervals.
+
+# What stays and what goes? 
+
+## The Problem of Model Selection
+
+<div class="columns-2">
+
+<img src="http://www.evilenglish.net/wp-content/uploads/2014/07/needle_haystack.jpg" height="450px" width="350px" />
+
+A given data set can conceivably have been generated from uncountably
+many models.  Identifying the true model is like finding a piece of hay in a 
+haystack. Said another way, the model space is massive and the criterion for
+what constitutes the "best" model is ill-defined.
+
+##
+**Best strategy**: Use domain knowledge to constrain the model space and/or
+build models that help you answer specific scientific questions.
+
+**Another common strategy:**
+
+1. Pick a criterion for "best".
+2. Decide how to explore the model space.
+3. Select "best" model in search area.
+
+**Tread Carefully!!!**  (particularly in second strategy)
+
+
+## The Rumsfeldian triplet
+
+*There are known knowns. These are things we know that we know. There are known unknowns. That is to say, there are things that we know we don't know. But there are also unknown unknowns. There are things we don't know we don't know.* Donald Rumsfeld
+
+In our context
+
+* (Known knowns) Regressors that we know we should check to include in the model and have.
+
+* (Known Unknowns) Regressors that we would like to include in the model, but don't have.
+
+* (Unknown Unknowns) Regressors that we don't even know about that we should have included in the model.
+
+## General rules
+
+* Omitting variables results in bias in the coeficients of interest - unless their regressors are uncorrelated with the omitted ones.
+  * This is why we randomize treatments, it attempts to uncorrelate our treatment indicator with variables that we don't have to put in the model. 
+  * (If there's too many unobserved confounding variables, even randomization won't help you.)
+* Including variables that we shouldn't have increases standard errors of the regression variables.
+  * Actually, including any new variables increasese (actual, not estimated) standard errors of other regressors. So we don't want to idly throw variables into the model.
+* The model must tend toward perfect fit as the number of non-redundant regressors approaches $n$.
+* $R^2$ increases monotonically as more regressors are included.
+* The SSE decreases monotonically as more regressors are included.
+
+## Plot of $R^2$ versus $n$
+Simulations as the number of variables included equals increases to $n=100$. 
+No actual relationship exists in any simulation
+```{r, fig.height=5, fig.width=5, echo=FALSE}
+ n <- 100
+plot(c(1, n), 0 : 1, type = "n", frame = FALSE, xlab = "p", ylab = "R^2")
+r <- sapply(1 : n, function(p)
+      {
+        y <- rnorm(n); x <- matrix(rnorm(n * p), n, p)
+        summary(lm(y ~ x))$r.squared 
+      }
+    )
+lines(1 : n, r, lwd = 2)
+abline(h = 1)
+```
+
+## Error measures
+
+* $R^2$ alone isn't enough - more variables = bigger $R^2$
+* [Adjusted $R^2$](http://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2) is $R^2$ taking into account the number of estimated parameters
+* [AIC](http://en.wikipedia.org/wiki/Akaike_information_criterion) also penalizes models with more parameters
+* [BIC](http://en.wikipedia.org/wiki/Bayesian_information_criterion) does the same, but with a bigger penalty
+
+## Options for choosing variables
+
+* Domain-specific knowledge
+  * Exploratory analysis
+  * Statistical selection
+
+## Selection options
+
+  * Step-wise
+  * $AIC$
+  * $AIC_c$
+  * $BIC$ 
+  * Adjusted $R^2$
+  * Likelihood tests for nested models
+  
+
+## $R^2_{adj}$
+
+A measure of explanatory power of model:
+
+\[ R^2 = SSreg/SST= 1 - RSS/SST \]
+
+But like likelihood, it only goes up with added predictors, therefore we add a
+penalty.
+
+\[ R^2_{adj} = 1 - \frac{RSS/(n - (p + 1))}{SST/(n - 1)} \]
+
+Nonetheless, choosing the model that has the highest $R^2_{adj}$ can lead to *overfitting*.
+
+
+## $AIC$
+
+*Akaike Information Criterion*: `AIC`, a balance of goodness of fit and complexity using
+information theory.
+
+\[ AIC = 2[-log(\textrm{likelihood of model}) + (p + 2)] \]
+
+which can be simplified to,
+
+\[ AIC = n log(\frac{RSS}{n}) + 2p \]
+
+Smaller = better. Tends to overfit in small sample sizes.
+
+
+## $AIC_C$
+
+*AIC Corrected*: a bias-corrected version for use on small sample sizes.
+
+\[ AIC_C = AIC + \frac{2(p + 2)(p + 3)}{n - (p + 1)} \]
+
+
+## $BIC$
+
+*Bayesian Information Criterion*: `BIC`, for all but the very smallest data sets, 
+takes a heavier penalty for complexity.
+
+\[ BIC = -2 log(\textrm{likelihood of model}) + (p + 2) log(n) \]
+
+
+## Likelihood
+
+**Def:** the joint probability (actually: density) of all of the data given a 
+particular model.  If our $Y$s are independent of each other given the $X$, then:
+
+\[ P(Y_. | X_.) = P(y_1 | x_1) P(y_2 | x_2) \ldots P(y_n | x_n) \]
+
+## {.bigger}
+
+We will talk about these metrics in lab
+
+
+## Covariate model selection
+
+* The space of models explodes quickly as you add interactions and polynomial terms. 
+
+* Principal components or factor analytic models on covariates are often useful for reducing complex covariate spaces.
+
+* Good design can often eliminate the need for complex model searches at analyses; though often control over the design is limited.
+
+* If the models of interest are nested and without lots of parameters differentiating them, it's fairly uncontroversial to use nested likelihood ratio tests. 
+
+
+## Leave it all in?
+
+1. Sometimes a variable must be in your model even if it is highly insignificant
+    * e.g., demonstrated theoretical importance or experimental blocking mechanism
+
+2. In the old days, they threw everything in regression models, which:
+    * results in false positives
+    * creates multicollinearity
+    * can join other causal pathways
+
+# Multicollinearity and Variance Inflation
+ 
+## Example: Car seat position
+
+<img src="http://www.oneshift.com/articles/uploads/large-news_4825.jpg" height="400px" width="600px" />
+
+##
+
+```{r, message=FALSE, error=FALSE}
+library(faraway)
+data(seatpos)
+head(seatpos)
+```
+
+## Modeling hipcenter
+
+```{r}
+m1 <- lm(hipcenter ~ ., data = seatpos)
+# the dot in the formula notation means 'all other variables'
+summary(m1)$coef
+```
+
+
+##
+```{r, echo=FALSE, fig.align='center', fig.height=6, fig.width=6}
+pairs(hipcenter ~ ., data = seatpos)
+```
+
+
+## High multicollinearity
+
+```{r, echo=FALSE, fig.align='center', fig.height = 5.5}
+library(MASS)
+n <- 40
+mu <- c(3, 3, 3)
+ryx1 <- .7
+ryx2 <- .7
+rho <- .95
+Sigma <- matrix(c(1, ryx1, ryx2, ryx1, 1, rho, ryx2, rho, 1), nrow = 3)
+d <- data.frame(mvrnorm(n, mu, Sigma))
+names(d) <- c("Y", "X1", "X2")
+pairs(d)
+```
+
+
+## 
+
+```{r, echo=FALSE, fig.align='center', fig.height=6, fig.width=8.5}
+library(scatterplot3d)
+nr <- 2
+nc <- 3
+par(mfrow = c(nr, nc))
+for(i in 1:(nr * nc)) {
+  d <- data.frame(mvrnorm(n, mu, Sigma))
+  names(d) <- c("Y", "X1", "X2")
+  s3d <- scatterplot3d(x = d$X1, y = d$X2, z = d$Y, color = "red", pch = 16,
+                       xlab = "X1", ylab = "X2", zlab = "Y", cex.symbols = 1.3)
+  m1 <- lm(Y ~ X1 + X2, data = d)
+  coefs <- m1$coef
+  s3d$plane3d(coefs["(Intercept)"], coefs["X1"], coefs["X2"])
+}
+```
+
+## Low multicollinearity
+
+```{r, echo=FALSE, fig.align='center', fig.height = 5.5}
+rho <- .2
+Sigma <- matrix(c(1, ryx1, ryx2, ryx1, 1, rho, ryx2, rho, 1), nrow = 3)
+d <- data.frame(mvrnorm(n, mu, Sigma))
+names(d) <- c("Y", "X1", "X2")
+pairs(d)
+```
+
+
+## 
+
+```{r, echo=FALSE, fig.align='center', fig.height=6, fig.width=8.5}
+nr <- 2
+nc <- 3
+par(mfrow = c(nr, nc))
+for(i in 1:(nr * nc)) {
+  d <- data.frame(mvrnorm(n, mu, Sigma))
+  names(d) <- c("Y", "X1", "X2")
+  s3d <- scatterplot3d(x = d$X1, y = d$X2, z = d$Y, color = "red", pch = 16, 
+                       xlab = "X1", ylab = "X2", zlab = "Y", cex.symbols = 1.3)
+  m1 <- lm(Y ~ X1 + X2, data = d)
+  coefs <- m1$coef
+  s3d$plane3d(coefs["(Intercept)"], coefs["X1"], coefs["X2"])
+}
+```
+
+## Consequences of multicollinearity
+
+* the model has difficulty deciding which of the them is responsibility for the variability in the response.  
+
+* geometrically, the plane is unstable and will vascillate wildly when fit to a new
+data set
+
+* the multicollinearity increases the variance of your slope estimates, so it becomes difficult to get good/stable/significant estimates.
+
+## Assessing multicollinearity
+
+- **Pairs plot**: look for strong linear relationships between predictors.
+- **Correlation matrix**: calculate the correlation between your predictors
+using `cor()`.
+- **Variance Inflation Factors (VIF)**:
+
+## Correlation matrix
+
+```{r}
+cor(d)
+```
+
+Correlations above 0.7 will often induce considerable variance in your slopes.
+
+## Variance Inflation Factor
+
+The variance of a given slope can be written:
+
+\[ Var(\hat{\beta}_j) = \frac{1}{1 - R^2_j} \times \frac{\sigma^2}{(n - 1) S^2_{x_j}} \]
+
+Where $R^2_j$ is the $R^2$ from predicting $x_j$ using the other predictors and
+$S^2_{x_j}$ is the variance of $x_j$.
+
+The first term is called the **VIF**: $1 / (1 - R^2_j)$
+
+## Variance Inflation Factor
+
+```{r}
+library(car)
+vif(m1)
+```
+
+Rule of thumb: VIFs greater than 5 should be addressed.
+
+##  VIF for seatposition data
+
+```{r}
+m1 <- lm(hipcenter ~ ., data = seatpos)
+vif(m1)
+```
+
+Notice any issues? Expected or unexpected?
+
+## Addressing Multicollinearity
+
+- Multicollinearity suggests that you have multiple predictors that are conveying
+the same information, so you probably don't need both in the model.
+
+- *Occam's Razor*: since the model with all of the predictors doesn't add any
+descriptive power, we should favor the simpler model.
+
+- *subject area knowledge* is the best way to decide which to remove
+
+# wrap-up
+
+## In the end...
+
+Model selection is about balancing tensions:
+
+- parsimony vs. completeness
+- theoretical importance vs. empirical relationship
+- outliers as noise vs. outliers as important signals
+
+Over this course and continuing in 8130, my goal is to give you the confidence and intuition to adeptly navigate these tensions
+
+## Questions?
+
+
+
+## Goal check
+
+
+##
+
+
