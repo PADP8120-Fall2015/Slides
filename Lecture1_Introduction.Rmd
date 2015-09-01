@@ -1,8 +1,9 @@
 ---
 title: "Lecture 1: R, R Studio, and R Markdown"
 author: "Tyler Scott"
-date: "2015-02-02 ![Creative Commons License](images/cc-by.png)" 
+date: "2015-07-22 ![Creative Commons License](images/cc-by.png)" 
 output: ioslides_presentation
+widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 ---
 
 # R, R Studio, and R Markdown

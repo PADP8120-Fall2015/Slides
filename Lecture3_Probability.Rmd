@@ -1,7 +1,7 @@
 ---
 title: "Lecture 3: Probability"
 author: "Tyler Scott"
-date: "2015-02-02 ![Creative Commons License](images/cc-by.png)" 
+date: "2015-08-30 ![Creative Commons License](images/cc-by.png)" 
 output: ioslides_presentation
 widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 ---
@@ -12,7 +12,11 @@ widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 
 In the last few weeks, we have spent time developing the computing skills that are necessary for doing modern quantitative social science research. Over the next several weeks, we are going to cover the theoretical and conceptual building blocks of statistical inference. 
 
-## Today's Material
+## Where we are
+
+![Image](images/data_workflow.png)
+
+##Today's Material
 
 - Basic probability
 - Bayesian and Frequentist outlooks
@@ -26,6 +30,9 @@ In the last few weeks, we have spent time developing the computing skills that a
 - Learn probabilistic notation
 - Understand how probability fits within our applied interests
 - Introduce Bayes' Theorem
+
+##
+<img src="images/data_workflow.png" width="800”>
 
 #Probability
 
