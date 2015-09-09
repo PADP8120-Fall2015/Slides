@@ -13,7 +13,18 @@ widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 - Random Variables
 - Distributions
 
+
+## Where we are
+
+![Image](images/data_workflow.png)
+
 ## Goals
+
+- Describe and characterize random variables
+
+- Employ samping methods in R
+
+- Know what a distribution is
 
 # Random variables
 
