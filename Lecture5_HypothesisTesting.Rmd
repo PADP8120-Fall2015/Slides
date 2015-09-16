@@ -14,9 +14,18 @@ widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 - Hypothesis testing
 - Sample size and estimation
 
+
+## Where we are
+
+![Image](images/data_workflow.png)
+
 ## Today's Goals
 
-#Statistical inference
+- Understand the basis on which we way "this is false" (or something)
+- Distinguish between Type I and II error and understand inherent tradeoffs
+- Intuitive grasp of the relationship between sample size and estimation
+
+#Statistical inference 
 
 ## Statistical inference defined
 
