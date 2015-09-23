@@ -1,7 +1,7 @@
 ---
 title: "Lecture 6: Significance, confidence intervals, and p-values"
 author: "Tyler Scott"
-date: "2015-02-02 ![Creative Commons License](images/cc-by.png)" 
+date: "2015-8-29 ![Creative Commons License](images/cc-by.png)" 
 output: ioslides_presentation
 widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 ---
@@ -14,6 +14,11 @@ widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 - p-values
 - Critical values
 - Significance tests
+
+## Where we are
+
+![Image](images/data_workflow.png)
+
 
 # Confidence intervals
 
@@ -355,7 +360,7 @@ require(ggplot2)
 require(gdata)
 
 
-source('sourcefiles/contingency.table.R')
+source('source/contingency.table.R')
 
 
 load('data/titanic.Rda')
