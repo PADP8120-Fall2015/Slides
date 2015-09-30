@@ -67,6 +67,10 @@ After this class you will be able to
 - conduct t-tests by hand and using R
 - distinguish different types of t-tests 
 
+## Where we are
+
+![Image](images/data_workflow.png)
+
 # T-tests
 
 ## General question formats
@@ -220,8 +224,6 @@ $$ \bar{x}_{diff} $$
 
 ## Hypotheses
 
-If in fact there was no difference between the scores on the reading and writing exams, should mean difference be?
-
 $H_{0}$: There is no difference between the average reading and writing score
 
 $H_{A}$: There is a difference between the average reading and writing score
@@ -315,10 +317,12 @@ $H_{A}$: Average price of 1.00 carat diamonds is greater
 ## Parameter and point estimate
 
 - Parameter of interest
+
 Average difference between the point prices of **all** 0.99 carat and 1 carat diamonds.
 $$\mu_{pt99} - \mu_{pt100}$$
 
 - Estimate
+
 Average difference between the point prices of **sampled**  0.99 carat and 1 carat diamonds.
 $$\bar{x}_{pt99} - \bar{x}_{pt100}$$
 
@@ -357,7 +361,7 @@ $$ = -8.93 \pm  6.12 $$
 
 $$ = (-15.05, -2.81) $$
 
-"We are 90% confident that the average point price of a 0.99 carat diamond is $15.05 to $2.81 lower than the average point price of a 1 carat diamond."
+"We are 90% confident that the average price difference between a 0.99 carat diamond and a 1 carat diamond is between $2.81 to $15.05."
 
 # Recap
 
