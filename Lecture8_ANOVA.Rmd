@@ -18,6 +18,11 @@ widgets     : [mathjax]            # {mathjax, quiz, bootstrap}
 
 -Sometimes we want to compare many different groups (i.e., more than two samples)
 
+
+## Where we are
+
+![Image](images/data_workflow.png)
+
 # Overview
 
 Tools for multiple means and categorical data
@@ -34,8 +39,6 @@ After this class you will be able to
 - explain what ANOVA and chi-square tests are used for
 - sequentially employ ANOVA and multiple comparisons test to identify key group differences
 - use Chi-square test to analyze independence of categorical variables
-
-# Goals
 
 # ANOVA
 
