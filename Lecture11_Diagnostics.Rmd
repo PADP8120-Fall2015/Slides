@@ -88,17 +88,23 @@ Given lots of pairs $(x, y)$ what we can infer about $\alpha$ and $\beta$?  Such
 
 1. The conditional mean of Y|X is a linear function of X.
 2. The variance of Y|X is the same for any X.
-3. The errors (and thus the Y|X are independent of one another).
+3. The errors (and thus the Y|X) are independent of one another.
 4. The errors are normally distributed with mean zero.
+
 5*. No "outliers".
 
 ## ... which lead to variety of properties
 
 - unbiased estimators
+
 - specific sampling variance
+
 - most efficent of all linear estimators
+
 - maximum liklihood estimators
+
 - coefficents are normally distributed
+
 
 ##
 
@@ -363,8 +369,11 @@ y <- c(y,yr[[i]])
 **Outliers** are points that don't fit the trend in the rest of the data.
 
 Calling a point an outlier is vague. 
+
   * Outliers can be the result of spurious or real processes.
+  
   * Outliers can have varying degrees of influence.
+  
   * Outliers can conform to the regression relationship (i.e being marginally outlying in X or Y, but not outlying given the regression relationship).
   
   
