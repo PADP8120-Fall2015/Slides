@@ -76,7 +76,7 @@ abline(m1, lwd = 2)
 ```
 
 
-## Linearity and normality {.build}
+## Linearity and normality
 
 ```{r, echo=FALSE}
 par(mfrow = c(1, 2))
@@ -87,7 +87,7 @@ The mean function appears to be linear and the residuals are well-approximated
 by the normal distribution.
 
 
-## Constant variance and influence {.build}
+## Constant variance and influence 
 
 ```{r echo = FALSE}
 par(mfrow = c(1, 2))
@@ -148,7 +148,7 @@ The mean function appears to be linear and the residuals are well-approximated
 by the normal distribution.
 
 
-## Constant variance and influence {.build}
+## Constant variance and influence 
 
 ```{r echo = FALSE}
 par(mfrow = c(1, 2))
@@ -177,8 +177,7 @@ pi2^2
 ```
 
 
-## Log Transformations
-
+# Log Transformations
 
 ## Example 2: Truck prices
 
@@ -211,7 +210,7 @@ abline(m1, lwd = 2)
 ```
 
 
-## Linearity and normality {.build}
+## Linearity and normality 
 
 ```{r, echo=FALSE}
 par(mfrow = c(1, 2))
@@ -222,7 +221,7 @@ The normality assumption on the errors seems fine but there seems to be a quadra
 trend in the mean function.
 
 
-## Constant variance and influence {.build}
+## Constant variance and influence 
 
 ```{r echo = FALSE}
 par(mfrow = c(1, 2))
@@ -233,7 +232,7 @@ One observation (44) should be investigated for its influence.  There is
 evidence of increasing variance in the residuals.
 
 
-## {.build}
+## 
 
 ```{r, echo=1, fig.height=3}
 pickups2 <- transform(pickups, log_price = log(price))
@@ -258,7 +257,7 @@ abline(m2, lwd = 2)
 ```
 
 
-## Linearity and normality {.build}
+## Linearity and normality 
 
 ```{r, echo=FALSE}
 par(mfrow = c(1, 2))
@@ -269,7 +268,7 @@ The residuals from this model appear less normal, though the quadratic trend in
 the mean function is now less apparent.
 
 
-## Constant variance and influence {.build}
+## Constant variance and influence 
 
 ```{r echo = FALSE}
 par(mfrow = c(1, 2))
@@ -293,7 +292,7 @@ car to increase on average by `r round(summary(m2)$coef[2, 1], 2)` dollars.
 Which isn't very useful . . .
 
 
-## Working with logs {.build}
+## Working with logs 
 
 Two useful identities:
 
@@ -301,7 +300,7 @@ Two useful identities:
 - \[ e^{log(x)} = x \]
 
 
-## {.build}
+## 
 
 The slope coefficient for the log-transformed model is
 `r round(summary(m2)$coef[2, 1], 2)`, meaning the *log* price difference between
@@ -321,7 +320,7 @@ For each additional year the car is newer we would expect the price of the car t
 increase on average by a factor of 1.14.
 
 
-## Transformations summary {.build}
+## Transformations summary 
 
 - If a linear model fit to the raw data leads to questionable residual plots,
 consider transformations.
@@ -554,9 +553,6 @@ Questions?
 
 Goal check
 
-## 
-
-Motivation for next class
 
 ##
 
